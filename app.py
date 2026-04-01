@@ -1014,19 +1014,23 @@ def handle_join(data):
 # ══════════════════════════════════════════
 
 if __name__ == '__main__':
-    HOST = os.getenv('HOST', '0.0.0.0')
-    PORT = int(os.getenv('PORT', '5000'))
-    DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+    # Render.com port kezelése
+    port = int(os.environ.get("PORT", 5000))
+    
+    # Debug mód kikapcsolása éles környezetben javasolt
+    debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
 
     print("═" * 45)
-    print(f"  Server:   http://{HOST}:{PORT}")
+    print(f"  Server:   http://0.0.0.0:{port}")
     print(f"  Database: {DB_NAME}")
     print(f"  Admin:    {ADMIN_EMAIL}")
-    print(f"  Debug:    {DEBUG}")
-    print(f"  Threads:  {MAX_SCAN_THREADS}")
-    print(f"  Upload:   {MAX_UPLOAD_MB}MB max")
     print("═" * 45)
 
+    # Fontos: a port=port paraméter hozzáadása!
     socketio.run(
-        app, host=HOST, port=PORT, debug=DEBUG
+        app, 
+        host='0.0.0.0', 
+        port=port, 
+        debug=debug_mode,
+        allow_unsafe_werkzeug=True # Ez néha kell a SocketIO-hoz threading módban
     )
