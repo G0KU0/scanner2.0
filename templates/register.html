@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Register - UPDH{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>Create Account</h1>
+            <p>You need an invite code to register</p>
+        </div>
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" name="email" required
+                       placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" name="password" required
+                       placeholder="••••••••" minlength="6">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Confirm Password</label>
+                <input type="password" name="confirm_password"
+                       required placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-ticket-alt"></i> Invite Code</label>
+                <input type="text" name="invite_code" required
+                       placeholder="Enter invite code">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-user-plus"></i> Register
+            </button>
+        </form>
+        <div class="auth-footer">
+            <p>Already have an account?
+                <a href="{{ url_for('login') }}">Sign In</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
