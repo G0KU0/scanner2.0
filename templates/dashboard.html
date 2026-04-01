@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - UPDH{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card stat-valid">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value" id="stat-valid">0</span>
+                <span class="stat-label">Valid</span>
+            </div>
+        </div>
+        <div class="stat-card stat-inbox">
+            <div class="stat-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value" id="stat-inbox">0</span>
+                <span class="stat-label">Inbox Hits</span>
+            </div>
+        </div>
+        <div class="stat-card stat-2fa">
+            <div class="stat-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value" id="stat-twofa">0</span>
+                <span class="stat-label">2FA</span>
+            </div>
+        </div>
+        <div class="stat-card stat-bad">
+            <div class="stat-icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value" id="stat-bad">0</span>
+                <span class="stat-label">Bad</span>
+            </div>
+        </div>
+        <div class="stat-card stat-checked">
+            <div class="stat-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">
+                    <span id="stat-checked">0</span>/<span id="stat-total">0</span>
+                </span>
+                <span class="stat-label">Checked</span>
+            </div>
+        </div>
+        <div class="stat-card stat-cpm">
+            <div class="stat-icon">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value" id="stat-cpm">0</span>
+                <span class="stat-label">CPM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"
+             style="width:0%"></div>
+        <span class="progress-text" id="progress-text">0%</span>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="control-panel">
+        <form id="scan-form" enctype="multipart/form-data">
+            <div class="control-grid">
+                <div class="control-group">
+                    <label>
+                        <i class="fas fa-file-upload"></i>
+                        Combo List
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file" name="combo_file"
+                               id="combo-file"
+                               accept=".txt,.csv" required>
+                        <label for="combo-file" class="file-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="combo-filename">
+                                Choose file...
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>
+                        <i class="fas fa-file-upload"></i>
+                        Proxies (optional)
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file" name="proxy_file"
+                               id="proxy-file" accept=".txt">
+                        <label for="proxy-file" class="file-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="proxy-filename">
+                                Choose file...
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group control-group-wide">
+                    <label>
+                        <i class="fas fa-search"></i>
+                        Keywords (one per line)
+                    </label>
+                    <textarea name="keywords" id="keywords"
+                              rows="3"
+                              placeholder="Steam&#10;Netflix&#10;PayPal">Steam
+Netflix
+PayPal</textarea>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button type="submit"
+                        class="btn btn-success" id="btn-start">
+                    <i class="fas fa-play"></i> Start
+                </button>
+                <button type="button"
+                        class="btn btn-warning" id="btn-pause"
+                        disabled>
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button type="button"
+                        class="btn btn-danger" id="btn-stop"
+                        disabled>
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-bar" id="status-bar">
+        <i class="fas fa-circle"></i>
+        <span id="status-text">Idle - Ready to start</span>
+    </div>
+
+    <!-- TABS -->
+    <div class="results-section">
+        <div class="tabs">
+            <button class="tab active" data-tab="all">
+                <i class="fas fa-list"></i> All
+                <span class="badge" id="badge-all">0</span>
+            </button>
+            <button class="tab" data-tab="inbox">
+                <i class="fas fa-inbox"></i> Inbox
+                <span class="badge badge-green"
+                      id="badge-inbox">0</span>
+            </button>
+            <button class="tab" data-tab="valid">
+                <i class="fas fa-check"></i> Valid
+                <span class="badge badge-blue"
+                      id="badge-valid">0</span>
+            </button>
+            <button class="tab" data-tab="2fa">
+                <i class="fas fa-shield-alt"></i> 2FA
+                <span class="badge badge-orange"
+                      id="badge-2fa">0</span>
+            </button>
+            <button class="tab" data-tab="bad">
+                <i class="fas fa-times"></i> Bad
+                <span class="badge badge-red"
+                      id="badge-bad">0</span>
+            </button>
+            <button class="tab" data-tab="keywords">
+                <i class="fas fa-key"></i> Keywords
+                <span class="badge badge-purple"
+                      id="badge-keywords">0</span>
+            </button>
+        </div>
+
+        <div class="tab-content active" id="tab-all">
+            <div class="results-list" id="results-all"></div>
+        </div>
+        <div class="tab-content" id="tab-inbox">
+            <div class="results-list" id="results-inbox"></div>
+        </div>
+        <div class="tab-content" id="tab-valid">
+            <div class="results-list" id="results-valid"></div>
+        </div>
+        <div class="tab-content" id="tab-2fa">
+            <div class="results-list" id="results-2fa"></div>
+        </div>
+        <div class="tab-content" id="tab-bad">
+            <div class="results-list" id="results-bad"></div>
+        </div>
+        <div class="tab-content" id="tab-keywords">
+            <div class="keywords-grid" id="keywords-grid"></div>
+        </div>
+    </div>
+
+    <!-- UPLOAD MODAL -->
+    <div class="modal" id="upload-modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload Results
+                </h2>
+                <button class="modal-close"
+                        onclick="document.getElementById('upload-modal').style.display='none'">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body" id="upload-links"></div>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="modal" id="detail-modal" style="display:none">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-envelope-open"></i>
+                    <span id="detail-title">Details</span>
+                </h2>
+                <button class="modal-close"
+                        onclick="document.getElementById('detail-modal').style.display='none'">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body" id="detail-body"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const socket = io();
+socket.on('connect', () => socket.emit('join', {}));
+
+const counters = {all:0, inbox:0, valid:0, '2fa':0, bad:0};
+const keywordData = {};
+
+document.getElementById('combo-file')
+    .addEventListener('change', function(){
+        document.getElementById('combo-filename')
+            .textContent = this.files[0]?.name || 'Choose file...';
+    });
+document.getElementById('proxy-file')
+    .addEventListener('change', function(){
+        document.getElementById('proxy-filename')
+            .textContent = this.files[0]?.name || 'Choose file...';
+    });
+
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab')
+            .forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content')
+            .forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab)
+            .classList.add('active');
+    });
+});
+
+// START
+document.getElementById('scan-form')
+    .addEventListener('submit', async(e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+        const r = await fetch('/api/start-scan',
+            {method:'POST', body:fd});
+        const d = await r.json();
+        if(d.error){ alert(d.error); return; }
+        document.getElementById('btn-start').disabled = true;
+        document.getElementById('btn-pause').disabled = false;
+        document.getElementById('btn-stop').disabled = false;
+        document.getElementById('status-bar').className =
+            'status-bar status-running';
+        document.getElementById('status-text')
+            .textContent = 'Running...';
+    } catch(err){ alert('Error: '+err.message); }
+});
+
+// PAUSE
+document.getElementById('btn-pause')
+    .addEventListener('click', async() => {
+    const r = await fetch('/api/pause-scan', {method:'POST'});
+    const d = await r.json();
+    const btn = document.getElementById('btn-pause');
+    if(d.status==='paused'){
+        btn.innerHTML = '<i class="fas fa-play"></i> Resume';
+        document.getElementById('status-bar').className =
+            'status-bar status-paused';
+        document.getElementById('status-text')
+            .textContent = 'Paused';
+    } else {
+        btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+        document.getElementById('status-bar').className =
+            'status-bar status-running';
+        document.getElementById('status-text')
+            .textContent = 'Running...';
+    }
+});
+
+// STOP
+document.getElementById('btn-stop')
+    .addEventListener('click', async() => {
+    if(!confirm('Stop scan and upload results?')) return;
+    document.getElementById('status-text')
+        .textContent = 'Stopping & Uploading...';
+    const r = await fetch('/api/stop-scan', {method:'POST'});
+    const d = await r.json();
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-pause').disabled = true;
+    document.getElementById('btn-stop').disabled = true;
+    document.getElementById('status-bar').className =
+        'status-bar status-stopped';
+    document.getElementById('status-text')
+        .textContent = 'Stopped';
+
+    if(d.upload_urls && Object.keys(d.upload_urls).length>0){
+        let html = '<div class="upload-links">';
+        for(const [key, url] of Object.entries(d.upload_urls)){
+            html += `<div class="upload-link-item">
+                <span class="upload-label">${key}</span>
+                <a href="${url}" target="_blank"
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-external-link-alt"></i>
+                    ${url}
+                </a>
+            </div>`;
+        }
+        html += '</div>';
+        document.getElementById('upload-links').innerHTML = html;
+        document.getElementById('upload-modal')
+            .style.display = 'flex';
+    }
+});
+
+const flags = {
+    'US':'🇺🇸','GB':'🇬🇧','CA':'🇨🇦','AU':'🇦🇺','DE':'🇩🇪',
+    'FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','BR':'🇧🇷','IN':'🇮🇳',
+    'JP':'🇯🇵','KR':'🇰🇷','CN':'🇨🇳','RU':'🇷🇺','MX':'🇲🇽',
+    'TR':'🇹🇷','NL':'🇳🇱','PL':'🇵🇱','SE':'🇸🇪','NO':'🇳🇴',
+    'DK':'🇩🇰','FI':'🇫🇮','CZ':'🇨🇿','GR':'🇬🇷','PT':'🇵🇹',
+    'IE':'🇮🇪','CH':'🇨🇭','AT':'🇦🇹','BE':'🇧🇪','NZ':'🇳🇿',
+    'SG':'🇸🇬','MY':'🇲🇾','TH':'🇹🇭','PH':'🇵🇭','SA':'🇸🇦',
+    'AE':'🇦🇪'
+};
+function getFlag(c){
+    return flags[(c||'').toUpperCase()] || '🏴';
+}
+
+function showDetail(email, pw, status, country, kwH, kwD){
+    document.getElementById('detail-title').textContent = email;
+    let html = `
+    <div class="detail-grid">
+        <div class="detail-item">
+            <label>Email</label><span>${email}</span>
+        </div>
+        <div class="detail-item">
+            <label>Password</label><span>${pw}</span>
+        </div>
+        <div class="detail-item">
+            <label>Status</label>
+            <span class="status-badge status-${status}">
+                ${status.toUpperCase()}
+            </span>
+        </div>
+        <div class="detail-item">
+            <label>Country</label>
+            <span>${getFlag(country)} ${country||'Unknown'}</span>
+        </div>
+    </div>`;
+    if(kwH && Object.keys(kwH).length>0){
+        html += `<h3 style="margin-top:20px">
+            <i class="fas fa-key"></i> Keyword Hits
+        </h3><div class="detail-keywords">`;
+        for(const [kw, count] of Object.entries(kwH)){
+            const date = (kwD && kwD[kw]) ? kwD[kw] : 'N/A';
+            html += `<div class="detail-kw-item">
+                <span class="kw-name">${kw}</span>
+                <span class="kw-count">${count} emails</span>
+                <span class="kw-date">
+                    <i class="fas fa-clock"></i> Last: ${date}
+                </span>
+            </div>`;
+        }
+        html += '</div>';
+    }
+    document.getElementById('detail-body').innerHTML = html;
+    document.getElementById('detail-modal')
+        .style.display = 'flex';
+}
+
+function createRow(data){
+    const div = document.createElement('div');
+    div.className = `result-row result-${data.status}`;
+    div.onclick = () => showDetail(
+        data.email, data.password, data.status,
+        data.country, data.keyword_hits, data.keyword_dates
+    );
+    let kwHtml = '';
+    if(data.keyword_hits &&
+       Object.keys(data.keyword_hits).length>0){
+        kwHtml = '<div class="result-keywords">';
+        for(const [kw,cnt] of
+            Object.entries(data.keyword_hits)){
+            const dt = (data.keyword_dates &&
+                data.keyword_dates[kw])
+                ? data.keyword_dates[kw] : '';
+            kwHtml += `<span class="kw-tag">${kw}:
+                <strong>${cnt}</strong>
+                ${dt ? ' <small>('+dt+')</small>' : ''}
+            </span>`;
+        }
+        kwHtml += '</div>';
+    }
+    const flag = data.country ? getFlag(data.country) : '';
+    const icon = data.status==='inbox' ? '📬' :
+                 data.status==='valid' ? '✅' :
+                 data.status==='2fa'   ? '🔒' : '❌';
+    div.innerHTML = `
+    <div class="result-main">
+        <span class="result-icon">${icon}</span>
+        <span class="result-email">${data.email}</span>
+        <span class="result-country">
+            ${flag} ${data.country||''}
+        </span>
+        <span class="result-status status-${data.status}">
+            ${data.status.toUpperCase()}
+        </span>
+    </div>
+    ${kwHtml}`;
+    return div;
+}
+
+socket.on('scan_result', (data) => {
+    counters.all++;
+    document.getElementById('results-all')
+        .prepend(createRow(data));
+
+    if(data.status==='inbox'){
+        counters.inbox++;
+        document.getElementById('results-inbox')
+            .prepend(createRow(data));
+        if(data.keyword_hits){
+            for(const [kw] of
+                Object.entries(data.keyword_hits)){
+                if(!keywordData[kw]) keywordData[kw]=[];
+                keywordData[kw].push(data);
+            }
+            rebuildKeywords();
+        }
+    } else if(data.status==='valid'){
+        counters.valid++;
+        document.getElementById('results-valid')
+            .prepend(createRow(data));
+    } else if(data.status==='2fa'){
+        counters['2fa']++;
+        document.getElementById('results-2fa')
+            .prepend(createRow(data));
+    } else {
+        counters.bad++;
+        document.getElementById('results-bad')
+            .prepend(createRow(data));
+    }
+
+    document.getElementById('badge-all')
+        .textContent = counters.all;
+    document.getElementById('badge-inbox')
+        .textContent = counters.inbox;
+    document.getElementById('badge-valid')
+        .textContent = counters.valid;
+    document.getElementById('badge-2fa')
+        .textContent = counters['2fa'];
+    document.getElementById('badge-bad')
+        .textContent = counters.bad;
+});
+
+socket.on('scan_stats', (data) => {
+    document.getElementById('stat-valid')
+        .textContent = data.valid||0;
+    document.getElementById('stat-inbox')
+        .textContent = data.inbox||0;
+    document.getElementById('stat-twofa')
+        .textContent = data.twofa||0;
+    document.getElementById('stat-bad')
+        .textContent = data.bad||0;
+    document.getElementById('stat-checked')
+        .textContent = data.checked||0;
+    document.getElementById('stat-total')
+        .textContent = data.total||0;
+    document.getElementById('stat-cpm')
+        .textContent = data.cpm||0;
+
+    const pct = data.total>0
+        ? Math.round((data.checked/data.total)*100) : 0;
+    document.getElementById('progress-bar')
+        .style.width = pct+'%';
+    document.getElementById('progress-text')
+        .textContent = pct+'%';
+
+    if(data.status==='completed'){
+        document.getElementById('btn-start').disabled = false;
+        document.getElementById('btn-pause').disabled = true;
+        document.getElementById('btn-stop').disabled = true;
+        document.getElementById('status-bar').className =
+            'status-bar status-completed';
+        document.getElementById('status-text')
+            .textContent = 'Completed!';
+    }
+});
+
+function rebuildKeywords(){
+    const grid = document.getElementById('keywords-grid');
+    grid.innerHTML = '';
+    const n = Object.keys(keywordData).length;
+    document.getElementById('badge-keywords').textContent = n;
+
+    for(const [kw, items] of Object.entries(keywordData)){
+        const card = document.createElement('div');
+        card.className = 'keyword-card';
+        card.innerHTML = `
+        <div class="keyword-header">
+            <span class="keyword-name">
+                <i class="fas fa-tag"></i> ${kw}
+            </span>
+            <span class="keyword-count">
+                ${items.length} accounts
+            </span>
+        </div>
+        <div class="keyword-items" style="display:none"></div>`;
+        card.querySelector('.keyword-header')
+            .addEventListener('click', () => {
+            const d = card.querySelector('.keyword-items');
+            d.style.display =
+                d.style.display==='none' ? 'block' : 'none';
+        });
+        const itemsDiv = card.querySelector('.keyword-items');
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'keyword-detail-row';
+            const cnt = item.keyword_hits[kw]||0;
+            const dt = (item.keyword_dates &&
+                item.keyword_dates[kw]) || 'N/A';
+            row.innerHTML = `
+            <span class="kd-email">${item.email}</span>
+            <span class="kd-country">
+                ${getFlag(item.country)} ${item.country||''}
+            </span>
+            <span class="kd-count">${cnt} emails</span>
+            <span class="kd-date">
+                <i class="fas fa-clock"></i> ${dt}
+            </span>`;
+            row.onclick = (e) => {
+                e.stopPropagation();
+                showDetail(item.email, item.password,
+                    item.status, item.country,
+                    item.keyword_hits, item.keyword_dates);
+            };
+            itemsDiv.appendChild(row);
+        });
+        grid.appendChild(card);
+    }
+}
+
+setInterval(async()=>{
+    try{
+        const r = await fetch('/api/scan-status');
+        const d = await r.json();
+        if(d.status && d.status!=='idle'){
+            document.getElementById('stat-valid')
+                .textContent = d.valid||0;
+            document.getElementById('stat-inbox')
+                .textContent = d.inbox||0;
+            document.getElementById('stat-twofa')
+                .textContent = d.twofa||0;
+            document.getElementById('stat-bad')
+                .textContent = d.bad||0;
+            document.getElementById('stat-checked')
+                .textContent = d.checked||0;
+            document.getElementById('stat-total')
+                .textContent = d.total||0;
+            document.getElementById('stat-cpm')
+                .textContent = d.cpm||0;
+        }
+    }catch(e){}
+}, 3000);
+</script>
+{% endblock %}
