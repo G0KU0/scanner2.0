@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Scan Results{% endblock %}
+{% block content %}
+<div class="detail-page">
+    <h1 class="page-title">
+        <i class="fas fa-poll"></i>
+        Scan #{{ job.id[:8] }}...
+        <span class="status-badge status-{{ job.status }}">
+            {{ job.status }}
+        </span>
+    </h1>
+
+    <div class="stats-grid" style="margin-bottom:30px">
+        <div class="stat-card stat-valid">
+            <div class="stat-info">
+                <span class="stat-value">
+                    {{ job.valid or 0 }}
+                </span>
+                <span class="stat-label">Valid</span>
+            </div>
+        </div>
+        <div class="stat-card stat-inbox">
+            <div class="stat-info">
+                <span class="stat-value">
+                    {{ job.inbox or 0 }}
+                </span>
+                <span class="stat-label">Inbox</span>
+            </div>
+        </div>
+        <div class="stat-card stat-2fa">
+            <div class="stat-info">
+                <span class="stat-value">
+                    {{ job.twofa or 0 }}
+                </span>
+                <span class="stat-label">2FA</span>
+            </div>
+        </div>
+        <div class="stat-card stat-bad">
+            <div class="stat-info">
+                <span class="stat-value">
+                    {{ job.bad or 0 }}
+                </span>
+                <span class="stat-label">Bad</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Status</th>
+                    <th>Country</th>
+                    <th>Keywords</th>
+                    <th>Last Email Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in results %}
+                <tr class="result-row-table result-{{ r.status }}">
+                    <td>{{ r.email }}</td>
+                    <td><code>{{ r.password }}</code></td>
+                    <td>
+                        <span class="status-badge status-{{ r.status }}">
+                            {{ r.status }}
+                        </span>
+                    </td>
+                    <td>{{ r.country or '-' }}</td>
+                    <td>
+                        {% if r.keyword_hits %}
+                            {% for kw, cnt in r.keyword_hits.items() %}
+                                <span class="kw-tag">
+                                    {{ kw }}: {{ cnt }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if r.keyword_dates %}
+                            {% for kw, dt in r.keyword_dates.items() %}
+                                <small>{{ kw }}: {{ dt }}</small>
+                                <br>
+                            {% endfor %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
