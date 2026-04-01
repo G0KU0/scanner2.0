@@ -37,8 +37,9 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_MB * 1024 * 1024
 
 MAX_SCAN_THREADS = int(os.getenv('MAX_SCAN_THREADS', '50'))
 
+# THREADING mód: stabil, nem függ az eventlet-től, Renderen tökéletes
 socketio = SocketIO(
-    app, cors_allowed_origins="*", async_mode='eventlet'
+    app, cors_allowed_origins="*", async_mode='threading'
 )
 
 os.makedirs('uploads', exist_ok=True)
@@ -57,29 +58,16 @@ MONGO_URI = os.getenv(
 
 
 def get_db_name_from_uri(uri):
-    """
-    Kiszedi a database nevet a MongoDB URI-ból.
-    
-    mongodb://localhost:27017/updh_checker -> updh_checker
-    mongodb+srv://user:pw@cluster.net/mydb?opts -> mydb
-    mongodb://localhost:27017/ -> updh_checker (default)
-    mongodb://localhost:27017  -> updh_checker (default)
-    """
+    """Kiszedi a database nevet a MongoDB URI-ból."""
     try:
         parsed = urlparse(uri)
         path = parsed.path
-
-        # Levesszük az első / jelet
         if path.startswith('/'):
             path = path[1:]
-
-        # Ha van database név
         if path and path.strip():
             return path.strip()
     except Exception:
         pass
-
-    # Ha nincs megadva, default
     return 'updh_checker'
 
 
@@ -1006,7 +994,7 @@ def delete_user(user_id):
 
 
 # ══════════════════════════════════════════
-#  SOCKETIO
+#  SOCKETIO EVENTS
 # ══════════════════════════════════════════
 
 @socketio.on('connect')
@@ -1028,7 +1016,7 @@ def handle_join(data):
 if __name__ == '__main__':
     HOST = os.getenv('HOST', '0.0.0.0')
     PORT = int(os.getenv('PORT', '5000'))
-    DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+    DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
     print("═" * 45)
     print(f"  Server:   http://{HOST}:{PORT}")
